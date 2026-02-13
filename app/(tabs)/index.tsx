@@ -1,98 +1,88 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { Text, View, StyleSheet, FlatList, Pressable } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useState } from 'react';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
-
-export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
-
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
-  );
+type Task = {
+    id: string;
+    text: string;
+    date: string;
+    completed: boolean;
 }
 
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+export default function Home() {
+    const [tasks, setTasks] = useState<Task[]>([]);
+
+    const addTask = () => {
+        const newTask: Task = {
+            id: Date.now().toString(),
+            text: "Task",
+            date: Date.now().toString(),
+            completed: false,
+        };
+        setTasks((prev) => [newTask, ...prev]);
+    };  
+
+    const toggleTask = (id: string) => {
+        setTasks((prev) =>
+            prev.map((task) => 
+                task.id === id
+                ? {...task, completed: !task.completed}
+                :task
+            )
+        );
+    }
+
+    const deleteTask = (id: string) => {
+        setTasks((prev) => prev.filter((task) => task.id !== id))
+    }
+
+    return(
+        <View style={style.container}>
+               <FlatList
+                    data={tasks}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({item}) => (
+                        <View style={style.item}>
+                            <Pressable onPress={() => toggleTask(item.id)}>
+                                <Ionicons name={item.completed ? "checkbox" : "square-outline"} size={32}/>
+                            </Pressable>
+                            <Text>    {item.text}</Text>
+                        </View>
+                    )}/>
+               <Pressable style={style.create} onPress={addTask}>
+                    <Ionicons name={'add'} color="#FFFFFF" size={24} />
+               </Pressable>
+        </View>
+    );
+}
+
+const style = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#FFFFFF',
+    },
+
+    create: {
+        position: 'absolute',
+        bottom: 20,
+        right: 20,
+        height: 50,
+        width: 50,
+        backgroundColor: "#0063FF",
+        borderRadius: 25,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    item: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 15,
+        marginLeft: 15,
+        marginRight: 15,
+        marginBottom: 10,
+        borderRadius: 10,
+        backgroundColor: '#F2F2F2',
+    },
 });
